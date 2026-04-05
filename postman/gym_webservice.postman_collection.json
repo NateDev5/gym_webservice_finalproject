@@ -1,0 +1,357 @@
+{
+  "info": {
+    "_postman_id": "6e2c4f7a-7a1d-45f6-9857-3dbf669d5a31",
+    "name": "Gym Webservice API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "membershipPlanId",
+      "value": "cab08990-8bbd-4210-b905-ff3ab3665622"
+    },
+    {
+      "key": "memberId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Member",
+      "item": [
+        {
+          "name": "Get All Members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"response is an array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Member\",\n  \"dateOfBirth\": \"1994-02-11\",\n  \"email\": \"postman.member@example.com\",\n  \"phone\": \"+15145550111\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"member response contains id\", function () {",
+                  "    pm.expect(body.memberId).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"member response echoes email\", function () {",
+                  "    pm.expect(body.email).to.eql('postman.member@example.com');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('memberId', body.memberId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Member By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members",
+                "{{memberId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"returned member matches requested id\", function () {",
+                  "    pm.expect(body.memberId).to.eql(pm.collectionVariables.get('memberId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Member",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Member Updated\",\n  \"dateOfBirth\": \"1994-02-11\",\n  \"email\": \"postman.member.updated@example.com\",\n  \"phone\": \"+15145550112\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-02-01\",\n  \"membershipEndDate\": \"2027-01-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members",
+                "{{memberId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"member was updated\", function () {",
+                  "    pm.expect(body.fullName).to.eql('Postman Member Updated');",
+                  "    pm.expect(body.email).to.eql('postman.member.updated@example.com');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Duplicate Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Duplicate Member\",\n  \"dateOfBirth\": \"1994-02-11\",\n  \"email\": \"postman.member.updated@example.com\",\n  \"phone\": \"+15145550113\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-02-01\",\n  \"membershipEndDate\": \"2027-01-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"duplicate error payload is returned\", function () {",
+                  "    pm.expect(body.error).to.eql('Conflict');",
+                  "    pm.expect(body.message).to.include('Member already exists');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Member With Invalid Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Invalid Plan Member\",\n  \"dateOfBirth\": \"1994-02-11\",\n  \"email\": \"invalid.plan.member@example.com\",\n  \"phone\": \"+15145550114\",\n  \"membershipPlanId\": \"11111111-2222-3333-4444-555555555555\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-02-01\",\n  \"membershipEndDate\": \"2027-01-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"missing plan error payload is returned\", function () {",
+                  "    pm.expect(body.error).to.eql('Not Found');",
+                  "    pm.expect(body.message).to.include('Membership plan not found');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Member",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members",
+                "{{memberId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Deleted Member",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members",
+                "{{memberId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"deleted member is not found\", function () {",
+                  "    pm.expect(body.error).to.eql('Not Found');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
