@@ -2,354 +2,280 @@
   "info": {
     "_postman_id": "6e2c4f7a-7a1d-45f6-9857-3dbf669d5a31",
     "name": "Gym Webservice API",
+    "description": "Comprehensive API tests for Member and Enrollment modules",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080"
-    },
-    {
-      "key": "membershipPlanId",
-      "value": "cab08990-8bbd-4210-b905-ff3ab3665622"
-    },
-    {
-      "key": "memberId",
-      "value": ""
-    }
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "membershipPlanId", "value": "cab08990-8bbd-4210-b905-ff3ab3665622"},
+    {"key": "createdMemberId", "value": ""},
+    {"key": "createdEnrollmentId", "value": ""},
+    {"key": "testClassSessionId", "value": "c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1"},
+    {"key": "activeMemberId", "value": "21f9d274-2aa5-4bfc-b3d2-b641046b0d0b"},
+    {"key": "inactiveMemberId", "value": "e71a6097-bc04-4f15-8567-66bdca3904b2"},
+    {"key": "existingEnrollmentId", "value": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"},
+    {"key": "nonExistentId", "value": "00000000-0000-0000-0000-000000000000"},
+    {"key": "invalidPlanId", "value": "99999999-9999-9999-9999-999999999999"}
   ],
   "item": [
     {
       "name": "Member",
+      "description": "Tests for Member Management API",
       "item": [
+        {
+          "name": "Create Member - Success",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Test User\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"email\": \"test.user@example.com\",\n  \"phone\": \"+15145551234\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });", "const response = pm.response.json();", "pm.test('Response contains memberId', function () { pm.expect(response.memberId).to.be.a('string').and.not.empty; });", "pm.test('Response contains correct fullName', function () { pm.expect(response.fullName).to.eql('Test User'); });", "pm.test('Response contains correct email', function () { pm.expect(response.email).to.eql('test.user@example.com'); });", "pm.test('Response contains membershipStatus ACTIVE', function () { pm.expect(response.membershipStatus).to.eql('ACTIVE'); });", "pm.collectionVariables.set('createdMemberId', response.memberId);"]}}]
+        },
+        {
+          "name": "Create Member - Duplicate Email",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Duplicate User\",\n  \"dateOfBirth\": \"1992-03-20\",\n  \"email\": \"test.user@example.com\",\n  \"phone\": \"+15145559999\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 409 Conflict', function () { pm.response.to.have.status(409); });", "const response = pm.response.json();", "pm.test('Error message indicates duplicate', function () { pm.expect(response.message).to.include('already exists'); });", "pm.test('Error field is Conflict', function () { pm.expect(response.error).to.eql('Conflict'); });"]}}]
+        },
+        {
+          "name": "Create Member - Invalid Membership Plan",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Invalid Plan User\",\n  \"dateOfBirth\": \"1995-08-10\",\n  \"email\": \"invalid.plan@example.com\",\n  \"phone\": \"+15145558888\",\n  \"membershipPlanId\": \"{{invalidPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error message indicates plan not found', function () { pm.expect(response.message).to.include('Membership plan not found'); });"]}}]
+        },
+        {
+          "name": "Create Member - Invalid Date Range",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Invalid Date User\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"email\": \"invalid.date@example.com\",\n  \"phone\": \"+15145557777\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-12-31\",\n  \"membershipEndDate\": \"2026-01-01\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });", "const response = pm.response.json();", "pm.test('Error indicates invalid membership period', function () { pm.expect(response.error).to.eql('Bad Request'); });"]}}]
+        },
+        {
+          "name": "Create Member - Missing Required Fields",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"\",\n  \"email\": \"missing.fields@example.com\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });", "const response = pm.response.json();", "pm.test('Error field is Bad Request', function () { pm.expect(response.error).to.eql('Bad Request'); });"]}}]
+        },
         {
           "name": "Get All Members",
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/members",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "members"
-              ]
-            }
+            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"status is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"response is an array\", function () {",
-                  "    pm.expect(pm.response.json()).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ]
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response is an array', function () { pm.expect(response).to.be.an('array'); });", "pm.test('Array contains members', function () { pm.expect(response.length).to.be.greaterThan(0); });", "pm.test('Each member has required fields', function () { response.forEach(function(member) { pm.expect(member).to.have.property('memberId'); pm.expect(member).to.have.property('fullName'); pm.expect(member).to.have.property('email'); }); });"]}}]
         },
         {
-          "name": "Create Member",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Postman Member\",\n  \"dateOfBirth\": \"1994-02-11\",\n  \"email\": \"postman.member@example.com\",\n  \"phone\": \"+15145550111\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/members",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "members"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"status is 201\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "const body = pm.response.json();",
-                  "",
-                  "pm.test(\"member response contains id\", function () {",
-                  "    pm.expect(body.memberId).to.be.a('string').and.not.empty;",
-                  "});",
-                  "",
-                  "pm.test(\"member response echoes email\", function () {",
-                  "    pm.expect(body.email).to.eql('postman.member@example.com');",
-                  "});",
-                  "",
-                  "pm.collectionVariables.set('memberId', body.memberId);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get Member By Id",
+          "name": "Get Member By ID - Success",
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/members/{{memberId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "members",
-                "{{memberId}}"
-              ]
-            }
+            "url": {"raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"]}
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"status is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const body = pm.response.json();",
-                  "",
-                  "pm.test(\"returned member matches requested id\", function () {",
-                  "    pm.expect(body.memberId).to.eql(pm.collectionVariables.get('memberId'));",
-                  "});"
-                ]
-              }
-            }
-          ]
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Returned member ID matches request', function () { pm.expect(response.memberId).to.eql(pm.collectionVariables.get('createdMemberId')); });", "pm.test('Response contains all member fields', function () { pm.expect(response).to.have.property('memberId'); pm.expect(response).to.have.property('fullName'); pm.expect(response).to.have.property('dateOfBirth'); pm.expect(response).to.have.property('email'); pm.expect(response).to.have.property('phone'); pm.expect(response).to.have.property('membershipPlanId'); pm.expect(response).to.have.property('membershipStatus'); });"]}}]
         },
         {
-          "name": "Update Member",
+          "name": "Get Member By ID - Not Found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/api/members/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{nonExistentId}}"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error message indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });", "pm.test('Error field is Not Found', function () { pm.expect(response.error).to.eql('Not Found'); });"]}}]
+        },
+        {
+          "name": "Update Member - Success",
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Postman Member Updated\",\n  \"dateOfBirth\": \"1994-02-11\",\n  \"email\": \"postman.member.updated@example.com\",\n  \"phone\": \"+15145550112\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-02-01\",\n  \"membershipEndDate\": \"2027-01-31\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/members/{{memberId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "members",
-                "{{memberId}}"
-              ]
-            }
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Test User Updated\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"email\": \"test.user.updated@example.com\",\n  \"phone\": \"+15145554321\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-02-01\",\n  \"membershipEndDate\": \"2027-01-31\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"]}
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"status is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const body = pm.response.json();",
-                  "",
-                  "pm.test(\"member was updated\", function () {",
-                  "    pm.expect(body.fullName).to.eql('Postman Member Updated');",
-                  "    pm.expect(body.email).to.eql('postman.member.updated@example.com');",
-                  "});"
-                ]
-              }
-            }
-          ]
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Member name was updated', function () { pm.expect(response.fullName).to.eql('Test User Updated'); });", "pm.test('Member email was updated', function () { pm.expect(response.email).to.eql('test.user.updated@example.com'); });", "pm.test('Member ID remains unchanged', function () { pm.expect(response.memberId).to.eql(pm.collectionVariables.get('createdMemberId')); });"]}}]
         },
         {
-          "name": "Create Duplicate Member",
+          "name": "Update Member - Not Found",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Duplicate Member\",\n  \"dateOfBirth\": \"1994-02-11\",\n  \"email\": \"postman.member.updated@example.com\",\n  \"phone\": \"+15145550113\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-02-01\",\n  \"membershipEndDate\": \"2027-01-31\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/members",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "members"
-              ]
-            }
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Non Existent User\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"email\": \"nonexistent@example.com\",\n  \"phone\": \"+15145550000\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/members/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{nonExistentId}}"]}
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"status is 409\", function () {",
-                  "    pm.response.to.have.status(409);",
-                  "});",
-                  "",
-                  "const body = pm.response.json();",
-                  "",
-                  "pm.test(\"duplicate error payload is returned\", function () {",
-                  "    pm.expect(body.error).to.eql('Conflict');",
-                  "    pm.expect(body.message).to.include('Member already exists');",
-                  "});"
-                ]
-              }
-            }
-          ]
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });"]}}]
         },
         {
-          "name": "Create Member With Invalid Plan",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Invalid Plan Member\",\n  \"dateOfBirth\": \"1994-02-11\",\n  \"email\": \"invalid.plan.member@example.com\",\n  \"phone\": \"+15145550114\",\n  \"membershipPlanId\": \"11111111-2222-3333-4444-555555555555\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-02-01\",\n  \"membershipEndDate\": \"2027-01-31\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/members",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "members"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"status is 404\", function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});",
-                  "",
-                  "const body = pm.response.json();",
-                  "",
-                  "pm.test(\"missing plan error payload is returned\", function () {",
-                  "    pm.expect(body.error).to.eql('Not Found');",
-                  "    pm.expect(body.message).to.include('Membership plan not found');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Delete Member",
+          "name": "Delete Member - Success",
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/members/{{memberId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "members",
-                "{{memberId}}"
-              ]
-            }
+            "url": {"raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"]}
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"status is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
-                  "});"
-                ]
-              }
-            }
-          ]
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 204 No Content', function () { pm.response.to.have.status(204); });", "pm.test('Response body is empty', function () { pm.expect(pm.response.text()).to.be.empty; });"]}}]
         },
         {
-          "name": "Get Deleted Member",
+          "name": "Delete Member - Verify Deleted",
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/members/{{memberId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "members",
-                "{{memberId}}"
-              ]
-            }
+            "url": {"raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"]}
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"status is 404\", function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});",
-                  "",
-                  "const body = pm.response.json();",
-                  "",
-                  "pm.test(\"deleted member is not found\", function () {",
-                  "    pm.expect(body.error).to.eql('Not Found');",
-                  "});"
-                ]
-              }
-            }
-          ]
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Deleted member is not found', function () { pm.expect(response.error).to.eql('Not Found'); });"]}}]
+        },
+        {
+          "name": "Delete Member - Not Found",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/api/members/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{nonExistentId}}"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Enrollment",
+      "description": "Tests for Enrollment/Classes API",
+      "item": [
+        {
+          "name": "Get All Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/api/enrollments", "host": ["{{baseUrl}}"], "path": ["api", "enrollments"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response has _embedded with enrollments', function () { pm.expect(response).to.have.property('_embedded'); });", "pm.test('Response has HATEOAS _links', function () { pm.expect(response).to.have.property('_links'); pm.expect(response._links).to.have.property('self'); });"]}}]
+        },
+        {
+          "name": "Get Enrollment By ID - Success",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/api/enrollments/{{existingEnrollmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "{{existingEnrollmentId}}"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response contains enrollmentId', function () { pm.expect(response.enrollmentId).to.eql(pm.collectionVariables.get('existingEnrollmentId')); });", "pm.test('Response contains memberId', function () { pm.expect(response.memberId).to.be.a('string').and.not.empty; });", "pm.test('Response contains registeredClasses array', function () { pm.expect(response.registeredClasses).to.be.an('array'); });", "pm.test('Response has HATEOAS self link', function () { pm.expect(response._links).to.have.property('self'); });", "pm.test('Response has HATEOAS enrollments link', function () { pm.expect(response._links).to.have.property('enrollments'); });", "pm.test('Response has HATEOAS member-enrollments link', function () { pm.expect(response._links).to.have.property('member-enrollments'); });", "pm.test('Each registered class has UUID classSessionId', function () { const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; response.registeredClasses.forEach(function(item) { pm.expect(item.classSessionId).to.match(uuidRegex); }); });"]}}]
+        },
+        {
+          "name": "Get Enrollment By ID - Not Found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/api/enrollments/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "{{nonExistentId}}"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error message indicates enrollment not found', function () { pm.expect(response.message).to.include('Enrollment not found'); });", "pm.test('Error field is Not Found', function () { pm.expect(response.error).to.eql('Not Found'); });"]}}]
+        },
+        {
+          "name": "Get Enrollments By Member ID - Success",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/api/enrollments/member/{{activeMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "member", "{{activeMemberId}}"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response has HATEOAS _links', function () { pm.expect(response).to.have.property('_links'); });", "pm.test('Response has self link', function () { pm.expect(response._links).to.have.property('self'); });", "pm.test('Response has all-enrollments link', function () { pm.expect(response._links).to.have.property('all-enrollments'); });"]}}]
+        },
+        {
+          "name": "Enroll Member In Class - Success",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{activeMemberId}}\",\n  \"classSessionId\": \"{{testClassSessionId}}\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });", "const response = pm.response.json();", "pm.test('Response contains enrollmentId', function () { pm.expect(response.enrollmentId).to.be.a('string').and.not.empty; });", "pm.test('Response contains correct memberId', function () { pm.expect(response.memberId).to.eql(pm.collectionVariables.get('activeMemberId')); });", "pm.test('Response contains registeredClasses with new enrollment', function () { const testClassId = pm.collectionVariables.get('testClassSessionId'); const enrolledClass = response.registeredClasses.find(c => c.classSessionId === testClassId); pm.expect(enrolledClass).to.not.be.undefined; pm.expect(enrolledClass.enrollmentStatus).to.eql('ENROLLED'); });", "pm.test('ClassSessionId is a valid UUID', function () { const testClassId = pm.collectionVariables.get('testClassSessionId'); const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; pm.expect(testClassId).to.match(uuidRegex); });", "pm.test('Response has HATEOAS links', function () { pm.expect(response._links).to.have.property('self'); });", "pm.collectionVariables.set('createdEnrollmentId', response.enrollmentId);"]}}]
+        },
+        {
+          "name": "Enroll Member In Same Class - Duplicate",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{activeMemberId}}\",\n  \"classSessionId\": \"{{testClassSessionId}}\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 409 Conflict', function () { pm.response.to.have.status(409); });", "const response = pm.response.json();", "pm.test('Error message indicates already enrolled', function () { pm.expect(response.message).to.include('already enrolled'); });", "pm.test('Error field is Conflict', function () { pm.expect(response.error).to.eql('Conflict'); });"]}}]
+        },
+        {
+          "name": "Enroll Inactive Member - Invalid Membership",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{inactiveMemberId}}\",\n  \"classSessionId\": \"d2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 403 Forbidden', function () { pm.response.to.have.status(403); });", "const response = pm.response.json();", "pm.test('Error message indicates invalid membership', function () { pm.expect(response.message).to.include('valid membership'); });", "pm.test('Error field is Forbidden', function () { pm.expect(response.error).to.eql('Forbidden'); });"]}}]
+        },
+        {
+          "name": "Enroll Non-Existent Member",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{nonExistentId}}\",\n  \"classSessionId\": \"e3e3e3e3-e3e3-e3e3-e3e3-e3e3e3e3e3e3\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error message indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });", "pm.test('Error field is Not Found', function () { pm.expect(response.error).to.eql('Not Found'); });"]}}]
+        },
+        {
+          "name": "Enroll - Missing Required Fields",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });", "const response = pm.response.json();", "pm.test('Error field is Bad Request', function () { pm.expect(response.error).to.eql('Bad Request'); });"]}}]
+        },
+        {
+          "name": "Cancel Enrollment - Success",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{activeMemberId}}\",\n  \"classSessionId\": \"{{testClassSessionId}}\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/enrollments/cancel", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "cancel"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response contains enrollmentId', function () { pm.expect(response.enrollmentId).to.be.a('string').and.not.empty; });", "pm.test('Enrollment status is CANCELLED for the class', function () { const testClassId = pm.collectionVariables.get('testClassSessionId'); const cancelledClass = response.registeredClasses.find(c => c.classSessionId === testClassId); pm.expect(cancelledClass).to.not.be.undefined; pm.expect(cancelledClass.enrollmentStatus).to.eql('CANCELLED'); });", "pm.test('Response has HATEOAS links', function () { pm.expect(response._links).to.have.property('self'); });"]}}]
+        },
+        {
+          "name": "Cancel Enrollment - Non-Existent Member",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{nonExistentId}}\",\n  \"classSessionId\": \"f4f4f4f4-f4f4-f4f4-f4f4-f4f4f4f4f4f4\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/enrollments/cancel", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "cancel"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });"]}}]
+        },
+        {
+          "name": "Enroll After Cancel - Re-enroll Success",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{activeMemberId}}\",\n  \"classSessionId\": \"{{testClassSessionId}}\"\n}"},
+            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });", "const response = pm.response.json();", "pm.test('Member can re-enroll after cancellation', function () { const testClassId = pm.collectionVariables.get('testClassSessionId'); const enrolledClasses = response.registeredClasses.filter(c => c.classSessionId === testClassId && c.enrollmentStatus === 'ENROLLED'); pm.expect(enrolledClasses.length).to.be.greaterThan(0); });"]}}]
+        },
+        {
+          "name": "Delete Enrollment - Not Found",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/api/enrollments/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "{{nonExistentId}}"]}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error indicates enrollment not found', function () { pm.expect(response.message).to.include('Enrollment not found'); });"]}}]
         }
       ]
     }
