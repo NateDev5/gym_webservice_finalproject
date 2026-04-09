@@ -1,7 +1,7 @@
 let pkgs = import <nixpkgs> { };
 in
 pkgs.mkShell {
-	packages = with pkgs; [ podman podman-compose pgadmin4 ];
+	packages = with pkgs; [ podman podman-compose pgadmin4-desktopmode ];
 
 	shellHook = ''
 	sudo rm -rf ~/.local/share/containers/

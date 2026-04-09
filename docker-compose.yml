@@ -14,7 +14,7 @@ services:
       timeout: 5s
       retries: 10
     volumes:
-      - gym_db_pgsql:/var/lib/postgresql
+      - ./gym_db_pgsql:/var/lib/postgresql
 
   gym-app:
     build:
