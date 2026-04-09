@@ -71,6 +71,10 @@ public class MemberCrudService {
         getById(parsedMemberId);
         MembershipPlan membershipPlan = getMembershipPlanById(requireNonNull(membershipPlanId, "membershipPlanId"));
 
+        if (repo.existsByEmailExcludingId(emailAddress, parsedMemberId)) {
+            throw new DuplicateMemberException(emailAddress);
+        }
+
         Member updatedMember = new Member(
                 parsedMemberId,
                 FullName.of(requireText(fullName, "fullName")),

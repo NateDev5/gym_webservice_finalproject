@@ -38,6 +38,11 @@ public class JpaMemberRepositoryAdapter implements MemberRepositoryPort {
     }
 
     @Override
+    public boolean existsByEmailExcludingId(String email, MemberId memberId) {
+        return jpa.existsByEmailAndMemberIdNot(email, memberId.value());
+    }
+
+    @Override
     public List<Member> findAll() {
         return jpa.findAll().stream().map(this::toDomain).toList();
     }

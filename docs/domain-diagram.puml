@@ -1,0 +1,131 @@
+@startuml
+title Gym Webservice Domain Diagram
+
+hide circle
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+package "Member Management" {
+  class Member {
+    +memberId: UUID
+    +fullName: String
+    +email: String
+    +phone: String
+    +dateOfBirth: LocalDate
+    +membershipStatus: String
+    +membershipStartDate: LocalDate
+    +membershipEndDate: LocalDate
+  }
+
+  class MembershipPlan {
+    +planId: UUID
+    +planName: String
+    +durationInMonths: Integer
+    +price: BigDecimal
+  }
+
+  Member --> MembershipPlan : uses
+}
+
+package "Trainer Management" {
+  class Trainer {
+    +trainerId: UUID
+    +fullName: String
+    +email: String
+    +specialty: String
+    +active: Boolean
+  }
+
+  class TrainerCertification {
+    +certificationId: UUID
+    +certificateName: String
+    +issuedDate: LocalDate
+    +expiryDate: LocalDate
+  }
+
+  Trainer *-- TrainerCertification
+}
+
+package "Schedule Management" {
+  class Schedule {
+    +scheduleId: UUID
+    +className: String
+    +classType: String
+    +startTime: LocalDateTime
+    +endTime: LocalDateTime
+    +trainerId: UUID
+    +maxCapacity: Integer
+    +enrolledCount: Integer
+  }
+
+  class Room {
+    +roomId: UUID
+    +roomName: String
+    +roomCapacity: Integer
+  }
+
+  class ClassSession {
+    +classSessionId: UUID
+    +sessionDate: LocalDate
+    +sessionStatus: String
+  }
+
+  Schedule *-- Room
+  Schedule *-- ClassSession
+}
+
+package "Enrollment Orchestration" {
+  class Enrollment {
+    +enrollmentId: UUID
+    +memberId: UUID
+  }
+
+  class EnrollmentItem {
+    +registrationId: UUID
+    +classSessionId: UUID
+    +enrollmentDate: LocalDateTime
+    +status: String
+    +trainerId: UUID
+    +scheduleId: UUID
+    +seatNumber: Integer
+  }
+
+  class WaitlistEntry {
+    +waitlistEntryId: UUID
+    +memberId: UUID
+    +classSessionId: UUID
+    +requestDate: LocalDateTime
+    +status: String
+  }
+
+  Enrollment *-- EnrollmentItem
+}
+
+Enrollment ..> Member : validates
+Enrollment ..> Trainer : checks
+Enrollment ..> Schedule : coordinates
+EnrollmentItem ..> ClassSession : references
+Schedule ..> Trainer : assigned
+
+note bottom of Enrollment
+  Invariants
+  - member must have valid membership
+  - no duplicate enrollment in same session
+  - session must have available seats
+end note
+
+note bottom of Schedule
+  Invariants
+  - enrolledCount <= maxCapacity
+  - endTime > startTime
+  - no room overlap
+end note
+
+note bottom of Trainer
+  Invariants
+  - trainer must be active
+  - no overlapping sessions
+  - specialty must match class
+end note
+
+@enduml

@@ -1,6 +1,8 @@
 spring:
   application:
     name: gym_webservice
+  profiles:
+    default: h2
   jpa:
     hibernate:
       ddl-auto: validate

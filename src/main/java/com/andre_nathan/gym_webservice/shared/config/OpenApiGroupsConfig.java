@@ -29,23 +29,21 @@ public class OpenApiGroupsConfig {
                 .build();
     }
 
-    // TODO: Add Schedule API group when Schedule module is implemented
-    // @Bean
-    // public GroupedOpenApi scheduleApi() {
-    //     return GroupedOpenApi.builder()
-    //             .group("schedule")
-    //             .displayName("Schedule API")
-    //             .pathsToMatch("/api/schedules/**", "/api/classes/**")
-    //             .build();
-    // }
+    @Bean
+    public GroupedOpenApi scheduleApi() {
+        return GroupedOpenApi.builder()
+                .group("schedule")
+                .displayName("Schedule API")
+                .pathsToMatch("/api/schedules/**")
+                .build();
+    }
 
-    // TODO: Add Trainer API group when Trainer module is implemented
-    // @Bean
-    // public GroupedOpenApi trainerApi() {
-    //     return GroupedOpenApi.builder()
-    //             .group("trainer")
-    //             .displayName("Trainer API")
-    //             .pathsToMatch("/api/trainers/**")
-    //             .build();
-    // }
+    @Bean
+    public GroupedOpenApi trainerApi() {
+        return GroupedOpenApi.builder()
+                .group("trainer")
+                .displayName("Trainer API")
+                .pathsToMatch("/api/trainers/**")
+                .build();
+    }
 }

@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="980" viewBox="0 0 1400 980">
+  <defs>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #1f2937; }
+      .group { fill: #f8fafc; stroke: #94a3b8; stroke-width: 2; rx: 10; ry: 10; }
+      .group-title { font: 700 18px Arial, sans-serif; fill: #0f172a; }
+      .box { fill: #ffffff; stroke: #475569; stroke-width: 1.5; rx: 8; ry: 8; }
+      .box-title { font: 700 15px Arial, sans-serif; fill: #111827; }
+      .text { font: 13px Arial, sans-serif; fill: #334155; }
+      .line { stroke: #64748b; stroke-width: 2; fill: none; }
+      .dash { stroke: #64748b; stroke-width: 2; stroke-dasharray: 7 5; fill: none; }
+      .note { fill: #fff7d6; stroke: #d4a72c; stroke-width: 1.5; rx: 8; ry: 8; }
+      .note-text { font: 12px Arial, sans-serif; fill: #5b4500; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L10,3 L0,6 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <text x="700" y="40" text-anchor="middle" class="title">Gym Webservice Domain Diagram</text>
+
+  <rect x="40" y="80" width="300" height="300" class="group"/>
+  <text x="60" y="110" class="group-title">Member Management</text>
+  <rect x="60" y="130" width="260" height="165" class="box"/>
+  <text x="80" y="155" class="box-title">Member</text>
+  <text x="80" y="180" class="text">memberId: UUID</text>
+  <text x="80" y="200" class="text">fullName: String</text>
+  <text x="80" y="220" class="text">email: String</text>
+  <text x="80" y="240" class="text">phone: String</text>
+  <text x="80" y="260" class="text">dateOfBirth: LocalDate</text>
+  <text x="80" y="280" class="text">membershipStatus: String</text>
+  <rect x="90" y="315" width="200" height="50" class="box"/>
+  <text x="110" y="340" class="box-title">MembershipPlan</text>
+  <text x="110" y="360" class="text">planId, planName, duration, price</text>
+  <path d="M190 295 L190 315" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="380" y="80" width="300" height="300" class="group"/>
+  <text x="400" y="110" class="group-title">Trainer Management</text>
+  <rect x="400" y="130" width="260" height="130" class="box"/>
+  <text x="420" y="155" class="box-title">Trainer</text>
+  <text x="420" y="180" class="text">trainerId: UUID</text>
+  <text x="420" y="200" class="text">fullName: String</text>
+  <text x="420" y="220" class="text">email: String</text>
+  <text x="420" y="240" class="text">specialty: String</text>
+  <rect x="430" y="290" width="200" height="60" class="box"/>
+  <text x="450" y="315" class="box-title">TrainerCertification</text>
+  <text x="450" y="335" class="text">certificateName, issuedDate, expiryDate</text>
+  <path d="M530 260 L530 290" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="720" y="80" width="320" height="330" class="group"/>
+  <text x="740" y="110" class="group-title">Schedule Management</text>
+  <rect x="740" y="130" width="280" height="150" class="box"/>
+  <text x="760" y="155" class="box-title">Schedule</text>
+  <text x="760" y="180" class="text">scheduleId: UUID</text>
+  <text x="760" y="200" class="text">className, classType</text>
+  <text x="760" y="220" class="text">startTime, endTime</text>
+  <text x="760" y="240" class="text">trainerId: UUID</text>
+  <text x="760" y="260" class="text">maxCapacity, enrolledCount</text>
+  <rect x="750" y="305" width="120" height="60" class="box"/>
+  <text x="770" y="330" class="box-title">Room</text>
+  <text x="770" y="350" class="text">roomId, roomName, roomCapacity</text>
+  <rect x="890" y="305" width="120" height="60" class="box"/>
+  <text x="905" y="330" class="box-title">ClassSession</text>
+  <text x="905" y="350" class="text">sessionDate, status</text>
+  <path d="M810 280 L810 305" class="line" marker-end="url(#arrow)"/>
+  <path d="M950 280 L950 305" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="250" y="450" width="900" height="300" class="group"/>
+  <text x="270" y="480" class="group-title">Enrollment Orchestration</text>
+  <rect x="280" y="510" width="220" height="100" class="box"/>
+  <text x="300" y="535" class="box-title">Enrollment</text>
+  <text x="300" y="560" class="text">enrollmentId: UUID</text>
+  <text x="300" y="580" class="text">memberId: UUID</text>
+  <rect x="540" y="500" width="270" height="140" class="box"/>
+  <text x="560" y="525" class="box-title">EnrollmentItem</text>
+  <text x="560" y="550" class="text">registrationId: UUID</text>
+  <text x="560" y="570" class="text">classSessionId: UUID</text>
+  <text x="560" y="590" class="text">trainerId: UUID</text>
+  <text x="560" y="610" class="text">scheduleId: UUID</text>
+  <text x="560" y="630" class="text">seatNumber: Integer</text>
+  <rect x="860" y="520" width="230" height="110" class="box"/>
+  <text x="880" y="545" class="box-title">WaitlistEntry</text>
+  <text x="880" y="570" class="text">waitlistEntryId: UUID</text>
+  <text x="880" y="590" class="text">memberId: UUID</text>
+  <text x="880" y="610" class="text">classSessionId: UUID</text>
+  <path d="M500 560 L540 560" class="line" marker-end="url(#arrow)"/>
+
+  <path d="M390 510 C390 450, 210 450, 210 295 C210 250, 210 250, 190 250" class="dash" marker-end="url(#arrow)"/>
+  <text x="110" y="430" class="text">validates member</text>
+
+  <path d="M650 500 C650 420, 530 420, 530 260" class="dash" marker-end="url(#arrow)"/>
+  <text x="570" y="410" class="text">checks trainer</text>
+
+  <path d="M760 500 C760 430, 880 430, 880 280" class="dash" marker-end="url(#arrow)"/>
+  <text x="810" y="410" class="text">coordinates schedule</text>
+
+  <rect x="70" y="800" width="360" height="110" class="note"/>
+  <text x="90" y="825" class="note-text">Enrollment invariants:</text>
+  <text x="90" y="848" class="note-text">- valid membership required</text>
+  <text x="90" y="868" class="note-text">- no duplicate enrollment per session</text>
+  <text x="90" y="888" class="note-text">- session must have available seats</text>
+
+  <rect x="500" y="800" width="360" height="110" class="note"/>
+  <text x="520" y="825" class="note-text">Schedule invariants:</text>
+  <text x="520" y="848" class="note-text">- enrolledCount &lt;= maxCapacity</text>
+  <text x="520" y="868" class="note-text">- endTime must be after startTime</text>
+  <text x="520" y="888" class="note-text">- no room overlap</text>
+
+  <rect x="930" y="800" width="360" height="110" class="note"/>
+  <text x="950" y="825" class="note-text">Trainer invariants:</text>
+  <text x="950" y="848" class="note-text">- trainer must be active</text>
+  <text x="950" y="868" class="note-text">- no overlapping sessions</text>
+  <text x="950" y="888" class="note-text">- specialty must match class</text>
+</svg>

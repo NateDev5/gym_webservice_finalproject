@@ -1,5 +1,6 @@
 package com.andre_nathan.gym_webservice.shared.web;
 
+import java.util.List;
 import java.time.Instant;
 
 public record ApiErrorResponse(
@@ -7,5 +8,6 @@ public record ApiErrorResponse(
         int status,
         String error,
         String message,
-        String path
+        String path,
+        List<String> details
 ) { }

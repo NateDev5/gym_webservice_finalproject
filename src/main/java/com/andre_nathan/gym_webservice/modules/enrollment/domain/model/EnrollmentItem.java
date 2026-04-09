@@ -8,11 +8,8 @@ public class EnrollmentItem {
     private EnrollmentDate enrollmentDate;
     private EnrollmentStatus enrollmentStatus;
     private ClassSessionId classSessionId;
-
-    //TODO: private TrainerId trainerId;
-
-    //TODO: private ScheduleId scheduleId;
-
+    private final String trainerId;
+    private final String scheduleId;
     private Integer seatNumber;
 
     public EnrollmentItem(
@@ -20,12 +17,16 @@ public class EnrollmentItem {
             EnrollmentDate enrollmentDate,
             EnrollmentStatus enrollmentStatus,
             ClassSessionId classSessionId,
+            String trainerId,
+            String scheduleId,
             Integer seatNumber
     ) {
         this.registrationId = Objects.requireNonNull(registrationId, "registrationId cannot be null");
         this.enrollmentDate = Objects.requireNonNull(enrollmentDate, "enrollmentDate cannot be null");
         this.enrollmentStatus = Objects.requireNonNull(enrollmentStatus, "enrollmentStatus cannot be null");
         this.classSessionId = Objects.requireNonNull(classSessionId, "classSessionId cannot be null");
+        this.trainerId = Objects.requireNonNull(trainerId, "trainerId cannot be null");
+        this.scheduleId = Objects.requireNonNull(scheduleId, "scheduleId cannot be null");
         this.seatNumber = seatNumber;
     }
 
@@ -47,6 +48,18 @@ public class EnrollmentItem {
 
     public Integer getSeatNumber() {
         return seatNumber;
+    }
+
+    public String getTrainerId() {
+        return trainerId;
+    }
+
+    public String getScheduleId() {
+        return scheduleId;
+    }
+
+    public boolean isCancelled() {
+        return enrollmentStatus == EnrollmentStatus.CANCELLED;
     }
 
     public void cancel() {

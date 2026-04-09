@@ -39,10 +39,11 @@ public class Enrollment {
         return !registeredClasses.isEmpty();
     }
 
-    public void enroll(ClassSessionId classSessionId) {
+    public void enroll(ClassSessionId classSessionId, String trainerId, String scheduleId, Integer seatNumber) {
         // Membership validity must be checked outside this aggregate because it only holds MemberId.
-        // TODO: check if enrolled session is full
         Objects.requireNonNull(classSessionId, "classSessionId cannot be null");
+        Objects.requireNonNull(trainerId, "trainerId cannot be null");
+        Objects.requireNonNull(scheduleId, "scheduleId cannot be null");
 
         boolean alreadyRegistered = registeredClasses.stream()
                 .anyMatch(item -> item.getClassSessionId().equals(classSessionId)
@@ -59,20 +60,31 @@ public class Enrollment {
                         EnrollmentDate.now(),
                         EnrollmentStatus.ENROLLED,
                         classSessionId,
-                        null
+                        trainerId,
+                        scheduleId,
+                        seatNumber
                 )
         );
         this.registeredClasses = List.copyOf(updatedRegisteredClasses);
+    }
+
+    public EnrollmentItem getRegistrationFor(ClassSessionId classSessionId) {
+        return registeredClasses.stream()
+                .filter(item -> item.getClassSessionId().equals(classSessionId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Member is not enrolled in class session " + classSessionId.value()));
     }
 
     public void cancelEnrollment(ClassSessionId classSessionId) {
         Objects.requireNonNull(classSessionId, "classSessionId cannot be null");
 
         List<EnrollmentItem> updatedRegisteredClasses = new ArrayList<>(registeredClasses);
-        updatedRegisteredClasses.stream()
-                .filter(item -> item.getClassSessionId().equals(classSessionId))
+        EnrollmentItem item = updatedRegisteredClasses.stream()
+                .filter(existingItem -> existingItem.getClassSessionId().equals(classSessionId))
                 .findFirst()
-                .ifPresent(EnrollmentItem::cancel);
+                .orElseThrow(() -> new IllegalArgumentException("Member is not enrolled in class session " + classSessionId.value()));
+
+        item.cancel();
 
         this.registeredClasses = List.copyOf(updatedRegisteredClasses);
     }

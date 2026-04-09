@@ -1,281 +1,1058 @@
 {
   "info": {
-    "_postman_id": "6e2c4f7a-7a1d-45f6-9857-3dbf669d5a31",
-    "name": "Gym Webservice API",
-    "description": "Comprehensive API tests for Member and Enrollment modules",
+    "_postman_id": "8455e0c2-7a20-4f28-9d22-f6b2ff09d001",
+    "name": "Gym Webservice API - Phase 2",
+    "description": "Phase 2 Postman collection covering Swagger docs, Member, Trainer, Schedule, and Enrollment orchestration flows with CRUD, validation, HATEOAS, and business-rule conflict checks.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {"key": "baseUrl", "value": "http://localhost:8080"},
-    {"key": "membershipPlanId", "value": "cab08990-8bbd-4210-b905-ff3ab3665622"},
-    {"key": "createdMemberId", "value": ""},
-    {"key": "createdEnrollmentId", "value": ""},
-    {"key": "testClassSessionId", "value": "c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1"},
-    {"key": "activeMemberId", "value": "21f9d274-2aa5-4bfc-b3d2-b641046b0d0b"},
-    {"key": "inactiveMemberId", "value": "e71a6097-bc04-4f15-8567-66bdca3904b2"},
-    {"key": "existingEnrollmentId", "value": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"},
-    {"key": "nonExistentId", "value": "00000000-0000-0000-0000-000000000000"},
-    {"key": "invalidPlanId", "value": "99999999-9999-9999-9999-999999999999"}
+    { "key": "baseUrl", "value": "http://localhost:8081" },
+    { "key": "membershipPlanId", "value": "cab08990-8bbd-4210-b905-ff3ab3665622" },
+    { "key": "activeSeedMemberId", "value": "076d07d8-7189-431c-9508-f19c43209e0f" },
+    { "key": "secondActiveSeedMemberId", "value": "bc5b6681-ae4f-493d-b14f-4cea299f25f0" },
+    { "key": "inactiveSeedMemberId", "value": "e71a6097-bc04-4f15-8567-66bdca3904b2" },
+    { "key": "seedTrainerYogaId", "value": "11111111-1111-1111-1111-111111111111" },
+    { "key": "seedTrainerSpinId", "value": "22222222-2222-2222-2222-222222222222" },
+    { "key": "nonExistentId", "value": "00000000-0000-0000-0000-000000000000" },
+    { "key": "runId", "value": "" },
+    { "key": "memberEmail", "value": "" },
+    { "key": "memberUpdatedEmail", "value": "" },
+    { "key": "trainerEmail", "value": "" },
+    { "key": "trainerUpdatedEmail", "value": "" },
+    { "key": "createdMemberId", "value": "" },
+    { "key": "createdTrainerId", "value": "" },
+    { "key": "createdScheduleId", "value": "" },
+    { "key": "createdClassSessionId", "value": "" },
+    { "key": "roomConflictClassSessionId", "value": "" },
+    { "key": "trainerConflictClassSessionId", "value": "" },
+    { "key": "fullClassScheduleId", "value": "" },
+    { "key": "fullClassSessionId", "value": "" },
+    { "key": "createdEnrollmentId", "value": "" }
   ],
   "item": [
     {
-      "name": "Member",
-      "description": "Tests for Member Management API",
+      "name": "00 Setup",
       "item": [
         {
-          "name": "Create Member - Success",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Test User\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"email\": \"test.user@example.com\",\n  \"phone\": \"+15145551234\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });", "const response = pm.response.json();", "pm.test('Response contains memberId', function () { pm.expect(response.memberId).to.be.a('string').and.not.empty; });", "pm.test('Response contains correct fullName', function () { pm.expect(response.fullName).to.eql('Test User'); });", "pm.test('Response contains correct email', function () { pm.expect(response.email).to.eql('test.user@example.com'); });", "pm.test('Response contains membershipStatus ACTIVE', function () { pm.expect(response.membershipStatus).to.eql('ACTIVE'); });", "pm.collectionVariables.set('createdMemberId', response.memberId);"]}}]
-        },
-        {
-          "name": "Create Member - Duplicate Email",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Duplicate User\",\n  \"dateOfBirth\": \"1992-03-20\",\n  \"email\": \"test.user@example.com\",\n  \"phone\": \"+15145559999\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 409 Conflict', function () { pm.response.to.have.status(409); });", "const response = pm.response.json();", "pm.test('Error message indicates duplicate', function () { pm.expect(response.message).to.include('already exists'); });", "pm.test('Error field is Conflict', function () { pm.expect(response.error).to.eql('Conflict'); });"]}}]
-        },
-        {
-          "name": "Create Member - Invalid Membership Plan",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Invalid Plan User\",\n  \"dateOfBirth\": \"1995-08-10\",\n  \"email\": \"invalid.plan@example.com\",\n  \"phone\": \"+15145558888\",\n  \"membershipPlanId\": \"{{invalidPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error message indicates plan not found', function () { pm.expect(response.message).to.include('Membership plan not found'); });"]}}]
-        },
-        {
-          "name": "Create Member - Invalid Date Range",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Invalid Date User\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"email\": \"invalid.date@example.com\",\n  \"phone\": \"+15145557777\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-12-31\",\n  \"membershipEndDate\": \"2026-01-01\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });", "const response = pm.response.json();", "pm.test('Error indicates invalid membership period', function () { pm.expect(response.error).to.eql('Bad Request'); });"]}}]
-        },
-        {
-          "name": "Create Member - Missing Required Fields",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"\",\n  \"email\": \"missing.fields@example.com\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });", "const response = pm.response.json();", "pm.test('Error field is Bad Request', function () { pm.expect(response.error).to.eql('Bad Request'); });"]}}]
-        },
-        {
-          "name": "Get All Members",
+          "name": "Initialize Run Variables",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = Date.now().toString();",
+                  "pm.collectionVariables.set('runId', runId);",
+                  "pm.collectionVariables.set('memberEmail', `postman.member.${runId}@example.com`);",
+                  "pm.collectionVariables.set('memberUpdatedEmail', `postman.member.updated.${runId}@example.com`);",
+                  "pm.collectionVariables.set('trainerEmail', `postman.trainer.${runId}@example.com`);",
+                  "pm.collectionVariables.set('trainerUpdatedEmail', `postman.trainer.updated.${runId}@example.com`);",
+                  "pm.collectionVariables.set('createdClassSessionId', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.collectionVariables.set('roomConflictClassSessionId', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.collectionVariables.set('trainerConflictClassSessionId', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.collectionVariables.set('fullClassSessionId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Run variables were initialized', function () {",
+                  "  pm.expect(pm.collectionVariables.get('memberEmail')).to.include('@example.com');",
+                  "  pm.expect(pm.collectionVariables.get('createdClassSessionId')).to.not.be.empty;",
+                  "  pm.expect(pm.collectionVariables.get('fullClassSessionId')).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
-            "url": {"raw": "{{baseUrl}}/api/members", "host": ["{{baseUrl}}"], "path": ["api", "members"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response is an array', function () { pm.expect(response).to.be.an('array'); });", "pm.test('Array contains members', function () { pm.expect(response.length).to.be.greaterThan(0); });", "pm.test('Each member has required fields', function () { response.forEach(function(member) { pm.expect(member).to.have.property('memberId'); pm.expect(member).to.have.property('fullName'); pm.expect(member).to.have.property('email'); }); });"]}}]
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members"]
+            }
+          }
         },
         {
-          "name": "Get Member By ID - Success",
+          "name": "OpenAPI Docs Available",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('OpenAPI payload returned', function () {",
+                  "  pm.expect(response).to.have.property('openapi');",
+                  "  pm.expect(response).to.have.property('paths');",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
-            "url": {"raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Returned member ID matches request', function () { pm.expect(response.memberId).to.eql(pm.collectionVariables.get('createdMemberId')); });", "pm.test('Response contains all member fields', function () { pm.expect(response).to.have.property('memberId'); pm.expect(response).to.have.property('fullName'); pm.expect(response).to.have.property('dateOfBirth'); pm.expect(response).to.have.property('email'); pm.expect(response).to.have.property('phone'); pm.expect(response).to.have.property('membershipPlanId'); pm.expect(response).to.have.property('membershipStatus'); });"]}}]
-        },
-        {
-          "name": "Get Member By ID - Not Found",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {"raw": "{{baseUrl}}/api/members/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{nonExistentId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error message indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });", "pm.test('Error field is Not Found', function () { pm.expect(response.error).to.eql('Not Found'); });"]}}]
-        },
-        {
-          "name": "Update Member - Success",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Test User Updated\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"email\": \"test.user.updated@example.com\",\n  \"phone\": \"+15145554321\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-02-01\",\n  \"membershipEndDate\": \"2027-01-31\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Member name was updated', function () { pm.expect(response.fullName).to.eql('Test User Updated'); });", "pm.test('Member email was updated', function () { pm.expect(response.email).to.eql('test.user.updated@example.com'); });", "pm.test('Member ID remains unchanged', function () { pm.expect(response.memberId).to.eql(pm.collectionVariables.get('createdMemberId')); });"]}}]
-        },
-        {
-          "name": "Update Member - Not Found",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Non Existent User\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"email\": \"nonexistent@example.com\",\n  \"phone\": \"+15145550000\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-01-01\",\n  \"membershipEndDate\": \"2026-12-31\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/members/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{nonExistentId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });"]}}]
-        },
-        {
-          "name": "Delete Member - Success",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {"raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 204 No Content', function () { pm.response.to.have.status(204); });", "pm.test('Response body is empty', function () { pm.expect(pm.response.text()).to.be.empty; });"]}}]
-        },
-        {
-          "name": "Delete Member - Verify Deleted",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {"raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Deleted member is not found', function () { pm.expect(response.error).to.eql('Not Found'); });"]}}]
-        },
-        {
-          "name": "Delete Member - Not Found",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {"raw": "{{baseUrl}}/api/members/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{nonExistentId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });"]}}]
+            "url": {
+              "raw": "{{baseUrl}}/v3/api-docs",
+              "host": ["{{baseUrl}}"],
+              "path": ["v3", "api-docs"]
+            }
+          }
         }
       ]
     },
     {
-      "name": "Enrollment",
-      "description": "Tests for Enrollment/Classes API",
+      "name": "01 Member",
       "item": [
         {
-          "name": "Get All Enrollments",
+          "name": "Create Member - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('createdMemberId', response.memberId);",
+                  "pm.test('Member was created', function () {",
+                  "  pm.expect(response.fullName).to.eql('Taylor Rivers');",
+                  "  pm.expect(response.email).to.eql(pm.collectionVariables.get('memberEmail'));",
+                  "  pm.expect(response.membershipStatus).to.eql('ACTIVE');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Taylor Rivers\",\n  \"dateOfBirth\": \"1996-05-03\",\n  \"email\": \"{{memberEmail}}\",\n  \"phone\": \"+15145550111\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-04-01\",\n  \"membershipEndDate\": \"2027-03-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members"]
+            }
+          }
+        },
+        {
+          "name": "Get Member By ID - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Returned member matches created member', function () {",
+                  "  pm.expect(response.memberId).to.eql(pm.collectionVariables.get('createdMemberId'));",
+                  "  pm.expect(response.email).to.eql(pm.collectionVariables.get('memberEmail'));",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
-            "url": {"raw": "{{baseUrl}}/api/enrollments", "host": ["{{baseUrl}}"], "path": ["api", "enrollments"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response has _embedded with enrollments', function () { pm.expect(response).to.have.property('_embedded'); });", "pm.test('Response has HATEOAS _links', function () { pm.expect(response).to.have.property('_links'); pm.expect(response._links).to.have.property('self'); });"]}}]
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{createdMemberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members", "{{createdMemberId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Members",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Members list is returned', function () {",
+                  "  pm.expect(response).to.be.an('array');",
+                  "  pm.expect(response.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members"]
+            }
+          }
+        },
+        {
+          "name": "Update Member - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Member was updated', function () {",
+                  "  pm.expect(response.fullName).to.eql('Taylor Rivers Updated');",
+                  "  pm.expect(response.email).to.eql(pm.collectionVariables.get('memberUpdatedEmail'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Taylor Rivers Updated\",\n  \"dateOfBirth\": \"1996-05-03\",\n  \"email\": \"{{memberUpdatedEmail}}\",\n  \"phone\": \"+15145550112\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-04-01\",\n  \"membershipEndDate\": \"2027-03-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{createdMemberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members", "{{createdMemberId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Member - Duplicate Email Conflict",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 409', function () { pm.response.to.have.status(409); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Duplicate email conflict returned', function () {",
+                  "  pm.expect(response.message).to.include('already exists');",
+                  "  pm.expect(response.error).to.eql('Conflict');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Duplicate Member\",\n  \"dateOfBirth\": \"1997-01-01\",\n  \"email\": \"{{memberUpdatedEmail}}\",\n  \"phone\": \"+15145550113\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-04-01\",\n  \"membershipEndDate\": \"2027-03-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members"]
+            }
+          }
+        },
+        {
+          "name": "Create Member - Validation Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Validation payload returned', function () {",
+                  "  pm.expect(response.message).to.eql('Validation failed.');",
+                  "  pm.expect(response.details).to.be.an('array').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"\",\n  \"dateOfBirth\": \"1996-05-03\",\n  \"email\": \"bad-email\",\n  \"phone\": \"\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"membershipStatus\": \"ACTIVE\",\n  \"membershipStartDate\": \"2026-04-01\",\n  \"membershipEndDate\": \"2027-03-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Trainer",
+      "item": [
+        {
+          "name": "Create Trainer - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('createdTrainerId', response.trainerId);",
+                  "pm.test('Trainer was created', function () {",
+                  "  pm.expect(response.fullName).to.eql('Jordan Miles');",
+                  "  pm.expect(response.email).to.eql(pm.collectionVariables.get('trainerEmail'));",
+                  "  pm.expect(response.certifications[0].certificateName).to.eql('Yoga Fundamentals');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Jordan Miles\",\n  \"email\": \"{{trainerEmail}}\",\n  \"specialty\": \"Yoga\",\n  \"active\": true,\n  \"certifications\": [\n    {\n      \"certificateName\": \"Yoga Fundamentals\",\n      \"issuedDate\": \"2025-01-15\",\n      \"expiryDate\": \"2027-01-15\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trainers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trainers"]
+            }
+          }
+        },
+        {
+          "name": "Get Trainer By ID - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Trainer matches created trainer', function () {",
+                  "  pm.expect(response.trainerId).to.eql(pm.collectionVariables.get('createdTrainerId'));",
+                  "  pm.expect(response.specialty).to.eql('Yoga');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trainers/{{createdTrainerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trainers", "{{createdTrainerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Trainers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Trainer list is returned', function () {",
+                  "  pm.expect(response).to.be.an('array');",
+                  "  pm.expect(response.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trainers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trainers"]
+            }
+          }
+        },
+        {
+          "name": "Update Trainer - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Trainer was updated', function () {",
+                  "  pm.expect(response.fullName).to.eql('Jordan Miles Updated');",
+                  "  pm.expect(response.email).to.eql(pm.collectionVariables.get('trainerUpdatedEmail'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Jordan Miles Updated\",\n  \"email\": \"{{trainerUpdatedEmail}}\",\n  \"specialty\": \"Yoga\",\n  \"active\": true,\n  \"certifications\": [\n    {\n      \"certificateName\": \"Yoga Advanced\",\n      \"issuedDate\": \"2025-02-01\",\n      \"expiryDate\": \"2027-02-01\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trainers/{{createdTrainerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trainers", "{{createdTrainerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Trainer - Duplicate Email Conflict",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 409', function () { pm.response.to.have.status(409); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Duplicate trainer conflict returned', function () {",
+                  "  pm.expect(response.message).to.include('already exists');",
+                  "  pm.expect(response.error).to.eql('Conflict');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Duplicate Trainer\",\n  \"email\": \"{{trainerUpdatedEmail}}\",\n  \"specialty\": \"Yoga\",\n  \"active\": true,\n  \"certifications\": [\n    {\n      \"certificateName\": \"Yoga Advanced\",\n      \"issuedDate\": \"2025-02-01\",\n      \"expiryDate\": \"2027-02-01\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trainers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trainers"]
+            }
+          }
+        },
+        {
+          "name": "Create Trainer - Validation Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Validation payload returned', function () {",
+                  "  pm.expect(response.message).to.eql('Validation failed.');",
+                  "  pm.expect(response.details).to.be.an('array').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"\",\n  \"email\": \"bad-email\",\n  \"specialty\": \"\",\n  \"active\": true,\n  \"certifications\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trainers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trainers"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Schedule",
+      "item": [
+        {
+          "name": "Create Schedule - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('createdScheduleId', response.scheduleId);",
+                  "pm.test('Schedule was created', function () {",
+                  "  pm.expect(response.className).to.eql('Morning Yoga Flow');",
+                  "  pm.expect(response.classSession.classSessionId).to.eql(pm.collectionVariables.get('createdClassSessionId'));",
+                  "  pm.expect(response.trainerId).to.eql(pm.collectionVariables.get('createdTrainerId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"className\": \"Morning Yoga Flow\",\n  \"classType\": \"Yoga\",\n  \"startTime\": \"2026-06-02T08:00:00\",\n  \"endTime\": \"2026-06-02T09:00:00\",\n  \"roomId\": \"room-postman-1\",\n  \"roomName\": \"Flow Studio\",\n  \"roomCapacity\": 18,\n  \"trainerId\": \"{{createdTrainerId}}\",\n  \"maxCapacity\": 10,\n  \"enrolledCount\": 0,\n  \"classSessionId\": \"{{createdClassSessionId}}\",\n  \"sessionDate\": \"2026-06-02\",\n  \"sessionStatus\": \"SCHEDULED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Get Schedule By ID - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Schedule matches created schedule', function () {",
+                  "  pm.expect(response.scheduleId).to.eql(pm.collectionVariables.get('createdScheduleId'));",
+                  "  pm.expect(response.room.roomName).to.eql('Flow Studio');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules/{{createdScheduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "{{createdScheduleId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Schedule By Class Session ID - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Class session lookup works', function () {",
+                  "  pm.expect(response.classSession.classSessionId).to.eql(pm.collectionVariables.get('createdClassSessionId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules/class-sessions/{{createdClassSessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "class-sessions", "{{createdClassSessionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Schedules",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Schedule list is returned', function () {",
+                  "  pm.expect(response).to.be.an('array');",
+                  "  pm.expect(response.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Update Schedule - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Schedule was updated', function () {",
+                  "  pm.expect(response.className).to.eql('Morning Yoga Flow Updated');",
+                  "  pm.expect(response.maxCapacity).to.eql(12);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"className\": \"Morning Yoga Flow Updated\",\n  \"classType\": \"Yoga\",\n  \"startTime\": \"2026-06-02T08:00:00\",\n  \"endTime\": \"2026-06-02T09:00:00\",\n  \"roomId\": \"room-postman-1\",\n  \"roomName\": \"Flow Studio\",\n  \"roomCapacity\": 18,\n  \"trainerId\": \"{{createdTrainerId}}\",\n  \"maxCapacity\": 12,\n  \"enrolledCount\": 0,\n  \"classSessionId\": \"{{createdClassSessionId}}\",\n  \"sessionDate\": \"2026-06-02\",\n  \"sessionStatus\": \"SCHEDULED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules/{{createdScheduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "{{createdScheduleId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Schedule - Room Conflict",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 409', function () { pm.response.to.have.status(409); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Room conflict returned', function () {",
+                  "  pm.expect(response.message).to.include('already has a class scheduled');",
+                  "  pm.expect(response.error).to.eql('Conflict');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"className\": \"Room Conflict Class\",\n  \"classType\": \"Spin\",\n  \"startTime\": \"2026-06-02T08:15:00\",\n  \"endTime\": \"2026-06-02T08:45:00\",\n  \"roomId\": \"room-postman-1\",\n  \"roomName\": \"Flow Studio\",\n  \"roomCapacity\": 18,\n  \"trainerId\": \"{{seedTrainerSpinId}}\",\n  \"maxCapacity\": 10,\n  \"enrolledCount\": 0,\n  \"classSessionId\": \"{{roomConflictClassSessionId}}\",\n  \"sessionDate\": \"2026-06-02\",\n  \"sessionStatus\": \"SCHEDULED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Create Schedule - Trainer Conflict",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 409', function () { pm.response.to.have.status(409); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Trainer overlap conflict returned', function () {",
+                  "  pm.expect(response.message).to.include('overlapping class');",
+                  "  pm.expect(response.error).to.eql('Conflict');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"className\": \"Trainer Conflict Class\",\n  \"classType\": \"Yoga\",\n  \"startTime\": \"2026-06-02T08:10:00\",\n  \"endTime\": \"2026-06-02T08:50:00\",\n  \"roomId\": \"room-postman-2\",\n  \"roomName\": \"Studio B\",\n  \"roomCapacity\": 18,\n  \"trainerId\": \"{{createdTrainerId}}\",\n  \"maxCapacity\": 10,\n  \"enrolledCount\": 0,\n  \"classSessionId\": \"{{trainerConflictClassSessionId}}\",\n  \"sessionDate\": \"2026-06-02\",\n  \"sessionStatus\": \"SCHEDULED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Enrollment Orchestration",
+      "item": [
+        {
+          "name": "Enroll Member In Class - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('createdEnrollmentId', response.enrollmentId);",
+                  "pm.test('Enrollment response contains orchestrated data', function () {",
+                  "  pm.expect(response.memberId).to.eql(pm.collectionVariables.get('createdMemberId'));",
+                  "  pm.expect(response.memberName).to.eql('Taylor Rivers Updated');",
+                  "  pm.expect(response.registeredClasses[0].className).to.eql('Morning Yoga Flow Updated');",
+                  "  pm.expect(response.registeredClasses[0].trainerId).to.eql(pm.collectionVariables.get('createdTrainerId'));",
+                  "});",
+                  "pm.test('HATEOAS links are present', function () {",
+                  "  pm.expect(response._links).to.have.property('self');",
+                  "  pm.expect(response._links).to.have.property('member');",
+                  "  pm.expect(response._links).to.have.property('class-session');",
+                  "  pm.expect(response._links).to.have.property('trainer');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{createdMemberId}}\",\n  \"classSessionId\": \"{{createdClassSessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enrollments", "enroll"]
+            }
+          }
         },
         {
           "name": "Get Enrollment By ID - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Enrollment can be fetched by id', function () {",
+                  "  pm.expect(response.enrollmentId).to.eql(pm.collectionVariables.get('createdEnrollmentId'));",
+                  "  pm.expect(response.registeredClasses).to.be.an('array').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
-            "url": {"raw": "{{baseUrl}}/api/enrollments/{{existingEnrollmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "{{existingEnrollmentId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response contains enrollmentId', function () { pm.expect(response.enrollmentId).to.eql(pm.collectionVariables.get('existingEnrollmentId')); });", "pm.test('Response contains memberId', function () { pm.expect(response.memberId).to.be.a('string').and.not.empty; });", "pm.test('Response contains registeredClasses array', function () { pm.expect(response.registeredClasses).to.be.an('array'); });", "pm.test('Response has HATEOAS self link', function () { pm.expect(response._links).to.have.property('self'); });", "pm.test('Response has HATEOAS enrollments link', function () { pm.expect(response._links).to.have.property('enrollments'); });", "pm.test('Response has HATEOAS member-enrollments link', function () { pm.expect(response._links).to.have.property('member-enrollments'); });", "pm.test('Each registered class has UUID classSessionId', function () { const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; response.registeredClasses.forEach(function(item) { pm.expect(item.classSessionId).to.match(uuidRegex); }); });"]}}]
-        },
-        {
-          "name": "Get Enrollment By ID - Not Found",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {"raw": "{{baseUrl}}/api/enrollments/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "{{nonExistentId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error message indicates enrollment not found', function () { pm.expect(response.message).to.include('Enrollment not found'); });", "pm.test('Error field is Not Found', function () { pm.expect(response.error).to.eql('Not Found'); });"]}}]
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/{{createdEnrollmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enrollments", "{{createdEnrollmentId}}"]
+            }
+          }
         },
         {
           "name": "Get Enrollments By Member ID - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Member enrollments collection has HATEOAS links', function () {",
+                  "  pm.expect(response._links).to.have.property('self');",
+                  "  pm.expect(response._links).to.have.property('all-enrollments');",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
-            "url": {"raw": "{{baseUrl}}/api/enrollments/member/{{activeMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "member", "{{activeMemberId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response has HATEOAS _links', function () { pm.expect(response).to.have.property('_links'); });", "pm.test('Response has self link', function () { pm.expect(response._links).to.have.property('self'); });", "pm.test('Response has all-enrollments link', function () { pm.expect(response._links).to.have.property('all-enrollments'); });"]}}]
-        },
-        {
-          "name": "Enroll Member In Class - Success",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{activeMemberId}}\",\n  \"classSessionId\": \"{{testClassSessionId}}\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });", "const response = pm.response.json();", "pm.test('Response contains enrollmentId', function () { pm.expect(response.enrollmentId).to.be.a('string').and.not.empty; });", "pm.test('Response contains correct memberId', function () { pm.expect(response.memberId).to.eql(pm.collectionVariables.get('activeMemberId')); });", "pm.test('Response contains registeredClasses with new enrollment', function () { const testClassId = pm.collectionVariables.get('testClassSessionId'); const enrolledClass = response.registeredClasses.find(c => c.classSessionId === testClassId); pm.expect(enrolledClass).to.not.be.undefined; pm.expect(enrolledClass.enrollmentStatus).to.eql('ENROLLED'); });", "pm.test('ClassSessionId is a valid UUID', function () { const testClassId = pm.collectionVariables.get('testClassSessionId'); const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; pm.expect(testClassId).to.match(uuidRegex); });", "pm.test('Response has HATEOAS links', function () { pm.expect(response._links).to.have.property('self'); });", "pm.collectionVariables.set('createdEnrollmentId', response.enrollmentId);"]}}]
-        },
-        {
-          "name": "Enroll Member In Same Class - Duplicate",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{activeMemberId}}\",\n  \"classSessionId\": \"{{testClassSessionId}}\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 409 Conflict', function () { pm.response.to.have.status(409); });", "const response = pm.response.json();", "pm.test('Error message indicates already enrolled', function () { pm.expect(response.message).to.include('already enrolled'); });", "pm.test('Error field is Conflict', function () { pm.expect(response.error).to.eql('Conflict'); });"]}}]
-        },
-        {
-          "name": "Enroll Inactive Member - Invalid Membership",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{inactiveMemberId}}\",\n  \"classSessionId\": \"d2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 403 Forbidden', function () { pm.response.to.have.status(403); });", "const response = pm.response.json();", "pm.test('Error message indicates invalid membership', function () { pm.expect(response.message).to.include('valid membership'); });", "pm.test('Error field is Forbidden', function () { pm.expect(response.error).to.eql('Forbidden'); });"]}}]
-        },
-        {
-          "name": "Enroll Non-Existent Member",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{nonExistentId}}\",\n  \"classSessionId\": \"e3e3e3e3-e3e3-e3e3-e3e3-e3e3e3e3e3e3\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error message indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });", "pm.test('Error field is Not Found', function () { pm.expect(response.error).to.eql('Not Found'); });"]}}]
-        },
-        {
-          "name": "Enroll - Missing Required Fields",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });", "const response = pm.response.json();", "pm.test('Error field is Bad Request', function () { pm.expect(response.error).to.eql('Bad Request'); });"]}}]
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/member/{{createdMemberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enrollments", "member", "{{createdMemberId}}"]
+            }
+          }
         },
         {
           "name": "Cancel Enrollment - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const response = pm.response.json();",
+                  "const item = response.registeredClasses.find(c => c.classSessionId === pm.collectionVariables.get('createdClassSessionId'));",
+                  "pm.test('Enrollment item was cancelled', function () {",
+                  "  pm.expect(item).to.not.be.undefined;",
+                  "  pm.expect(item.enrollmentStatus).to.eql('CANCELLED');",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{activeMemberId}}\",\n  \"classSessionId\": \"{{testClassSessionId}}\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/enrollments/cancel", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "cancel"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });", "const response = pm.response.json();", "pm.test('Response contains enrollmentId', function () { pm.expect(response.enrollmentId).to.be.a('string').and.not.empty; });", "pm.test('Enrollment status is CANCELLED for the class', function () { const testClassId = pm.collectionVariables.get('testClassSessionId'); const cancelledClass = response.registeredClasses.find(c => c.classSessionId === testClassId); pm.expect(cancelledClass).to.not.be.undefined; pm.expect(cancelledClass.enrollmentStatus).to.eql('CANCELLED'); });", "pm.test('Response has HATEOAS links', function () { pm.expect(response._links).to.have.property('self'); });"]}}]
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{createdMemberId}}\",\n  \"classSessionId\": \"{{createdClassSessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enrollments", "cancel"]
+            }
+          }
         },
         {
-          "name": "Cancel Enrollment - Non-Existent Member",
+          "name": "Re-Enroll After Cancel - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const response = pm.response.json();",
+                  "const items = response.registeredClasses.filter(c => c.classSessionId === pm.collectionVariables.get('createdClassSessionId'));",
+                  "pm.test('A new enrolled record exists after re-enroll', function () {",
+                  "  pm.expect(items.some(c => c.enrollmentStatus === 'ENROLLED')).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{nonExistentId}}\",\n  \"classSessionId\": \"f4f4f4f4-f4f4-f4f4-f4f4-f4f4f4f4f4f4\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/enrollments/cancel", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "cancel"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error indicates member not found', function () { pm.expect(response.message).to.include('Member not found'); });"]}}]
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{createdMemberId}}\",\n  \"classSessionId\": \"{{createdClassSessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enrollments", "enroll"]
+            }
+          }
         },
         {
-          "name": "Enroll After Cancel - Re-enroll Success",
+          "name": "Enroll Inactive Member - Business Conflict",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 409', function () { pm.response.to.have.status(409); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Invalid membership conflict returned', function () {",
+                  "  pm.expect(response.message).to.include('valid membership');",
+                  "  pm.expect(response.error).to.eql('Conflict');",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"memberId\": \"{{activeMemberId}}\",\n  \"classSessionId\": \"{{testClassSessionId}}\"\n}"},
-            "url": {"raw": "{{baseUrl}}/api/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "enroll"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });", "const response = pm.response.json();", "pm.test('Member can re-enroll after cancellation', function () { const testClassId = pm.collectionVariables.get('testClassSessionId'); const enrolledClasses = response.registeredClasses.filter(c => c.classSessionId === testClassId && c.enrollmentStatus === 'ENROLLED'); pm.expect(enrolledClasses.length).to.be.greaterThan(0); });"]}}]
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{inactiveSeedMemberId}}\",\n  \"classSessionId\": \"{{createdClassSessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enrollments", "enroll"]
+            }
+          }
         },
         {
-          "name": "Delete Enrollment - Not Found",
+          "name": "Create Full Class Schedule - Setup",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('fullClassScheduleId', response.scheduleId);",
+                  "pm.test('Full class schedule created', function () {",
+                  "  pm.expect(response.classSession.classSessionId).to.eql(pm.collectionVariables.get('fullClassSessionId'));",
+                  "  pm.expect(response.maxCapacity).to.eql(1);",
+                  "  pm.expect(response.enrolledCount).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"className\": \"Full Spin Class\",\n  \"classType\": \"Spin\",\n  \"startTime\": \"2026-06-03T18:00:00\",\n  \"endTime\": \"2026-06-03T19:00:00\",\n  \"roomId\": \"room-postman-full\",\n  \"roomName\": \"Packed Studio\",\n  \"roomCapacity\": 10,\n  \"trainerId\": \"{{seedTrainerSpinId}}\",\n  \"maxCapacity\": 1,\n  \"enrolledCount\": 1,\n  \"classSessionId\": \"{{fullClassSessionId}}\",\n  \"sessionDate\": \"2026-06-03\",\n  \"sessionStatus\": \"SCHEDULED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Enroll In Full Class - Conflict",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 409', function () { pm.response.to.have.status(409); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Full class conflict returned', function () {",
+                  "  pm.expect(response.message).to.include('Class session is full');",
+                  "  pm.expect(response.error).to.eql('Conflict');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{secondActiveSeedMemberId}}\",\n  \"classSessionId\": \"{{fullClassSessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enrollments", "enroll"]
+            }
+          }
+        },
+        {
+          "name": "Enroll Missing Fields - Validation Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                  "const response = pm.response.json();",
+                  "pm.test('Validation payload returned', function () {",
+                  "  pm.expect(response.message).to.eql('Validation failed.');",
+                  "  pm.expect(response.details).to.be.an('array').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "enrollments", "enroll"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Cleanup",
+      "item": [
+        {
+          "name": "Delete Enrollment Aggregate",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status code is 204', function () { pm.response.to.have.status(204); });"] } }],
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": {"raw": "{{baseUrl}}/api/enrollments/{{nonExistentId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "{{nonExistentId}}"]}
-          },
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Status code is 404 Not Found', function () { pm.response.to.have.status(404); });", "const response = pm.response.json();", "pm.test('Error indicates enrollment not found', function () { pm.expect(response.message).to.include('Enrollment not found'); });"]}}]
+            "url": { "raw": "{{baseUrl}}/api/enrollments/{{createdEnrollmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "enrollments", "{{createdEnrollmentId}}"] }
+          }
+        },
+        {
+          "name": "Delete Full Class Schedule",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status code is 204', function () { pm.response.to.have.status(204); });"] } }],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/schedules/{{fullClassScheduleId}}", "host": ["{{baseUrl}}"], "path": ["api", "schedules", "{{fullClassScheduleId}}"] }
+          }
+        },
+        {
+          "name": "Delete Main Schedule",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status code is 204', function () { pm.response.to.have.status(204); });"] } }],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/schedules/{{createdScheduleId}}", "host": ["{{baseUrl}}"], "path": ["api", "schedules", "{{createdScheduleId}}"] }
+          }
+        },
+        {
+          "name": "Delete Trainer",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status code is 204', function () { pm.response.to.have.status(204); });"] } }],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/trainers/{{createdTrainerId}}", "host": ["{{baseUrl}}"], "path": ["api", "trainers", "{{createdTrainerId}}"] }
+          }
+        },
+        {
+          "name": "Delete Member",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status code is 204', function () { pm.response.to.have.status(204); });"] } }],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/members/{{createdMemberId}}", "host": ["{{baseUrl}}"], "path": ["api", "members", "{{createdMemberId}}"] }
+          }
         }
       ]
     }

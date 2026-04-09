@@ -11,6 +11,7 @@ public interface MemberRepositoryPort {
     Member save(Member member);
     Optional<Member> findById(MemberId id);
     boolean existsByEmail(String email);
+    boolean existsByEmailExcludingId(String email, MemberId memberId);
     List<Member> findAll();
     void deleteById(MemberId id);
 }

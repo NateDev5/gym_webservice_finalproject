@@ -6,35 +6,43 @@ import com.andre_nathan.gym_webservice.modules.enrollment.application.port.out.E
 import com.andre_nathan.gym_webservice.modules.enrollment.domain.model.ClassSessionId;
 import com.andre_nathan.gym_webservice.modules.enrollment.domain.model.Enrollment;
 import com.andre_nathan.gym_webservice.modules.enrollment.domain.model.EnrollmentId;
+import com.andre_nathan.gym_webservice.modules.enrollment.domain.model.EnrollmentItem;
 import com.andre_nathan.gym_webservice.modules.member.application.exception.MemberNotFoundException;
 import com.andre_nathan.gym_webservice.modules.member.application.port.out.MemberRepositoryPort;
 import com.andre_nathan.gym_webservice.modules.member.domain.model.Member;
 import com.andre_nathan.gym_webservice.modules.member.domain.model.MemberId;
-import com.andre_nathan.gym_webservice.modules.member.domain.model.MembershipStatus;
+import com.andre_nathan.gym_webservice.modules.schedule.application.exception.ClassSessionNotFoundException;
+import com.andre_nathan.gym_webservice.modules.schedule.application.port.out.ScheduleRepositoryPort;
+import com.andre_nathan.gym_webservice.modules.schedule.domain.model.Schedule;
+import com.andre_nathan.gym_webservice.modules.schedule.domain.model.ScheduleId;
+import com.andre_nathan.gym_webservice.modules.trainer.application.exception.InactiveTrainerException;
+import com.andre_nathan.gym_webservice.modules.trainer.application.exception.TrainerNotFoundException;
+import com.andre_nathan.gym_webservice.modules.trainer.application.exception.TrainerSpecialtyMismatchException;
+import com.andre_nathan.gym_webservice.modules.trainer.application.port.out.TrainerRepositoryPort;
+import com.andre_nathan.gym_webservice.modules.trainer.domain.model.Trainer;
+import com.andre_nathan.gym_webservice.modules.trainer.domain.model.TrainerId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class EnrollmentOrchestrator {
     private final EnrollmentRepositoryPort enrollmentRepository;
     private final MemberRepositoryPort memberRepository;
-    // TODO: private final TrainerRepositoryPort trainerRepository;
-    // TODO: private final ScheduleRepositoryPort scheduleRepository;
+    private final TrainerRepositoryPort trainerRepository;
+    private final ScheduleRepositoryPort scheduleRepository;
 
     public EnrollmentOrchestrator(
             EnrollmentRepositoryPort enrollmentRepository,
-            MemberRepositoryPort memberRepository
-            // TODO: TrainerRepositoryPort trainerRepository,
-            // TODO: ScheduleRepositoryPort scheduleRepository
+            MemberRepositoryPort memberRepository,
+            TrainerRepositoryPort trainerRepository,
+            ScheduleRepositoryPort scheduleRepository
     ) {
         this.enrollmentRepository = enrollmentRepository;
         this.memberRepository = memberRepository;
-        // TODO: this.trainerRepository = trainerRepository;
-        // TODO: this.scheduleRepository = scheduleRepository;
+        this.trainerRepository = trainerRepository;
+        this.scheduleRepository = scheduleRepository;
     }
 
     @Transactional
@@ -44,12 +52,25 @@ public class EnrollmentOrchestrator {
 
         Member member = getMemberById(parsedMemberId);
         validateMembershipIsActive(member);
+        Schedule schedule = getScheduleByClassSessionId(parsedClassSessionId.value());
+        Trainer trainer = getTrainerById(schedule.getTrainerId());
 
-        // TODO: Validate trainer availability via TrainerRepositoryPort
-        // TODO: Validate class session exists and is not full via ScheduleRepositoryPort
+        if (!schedule.hasAvailableSeat()) {
+            throw new com.andre_nathan.gym_webservice.modules.enrollment.application.exception.ClassSessionFullException(parsedClassSessionId);
+        }
+
+        validateTrainer(trainer, schedule.getClassType());
 
         Enrollment enrollment = getOrCreateEnrollmentForMember(parsedMemberId);
-        enrollment.enroll(parsedClassSessionId);
+        enrollment.enroll(
+                parsedClassSessionId,
+                trainer.getTrainerId().value(),
+                schedule.getScheduleId().value(),
+                schedule.nextSeatNumber()
+        );
+
+        schedule.incrementEnrollment();
+        scheduleRepository.save(schedule);
 
         return enrollmentRepository.save(enrollment);
     }
@@ -62,10 +83,16 @@ public class EnrollmentOrchestrator {
         getMemberById(parsedMemberId);
 
         Enrollment enrollment = getEnrollmentForMember(parsedMemberId);
+        EnrollmentItem item = enrollment.getRegistrationFor(parsedClassSessionId);
+        boolean shouldReleaseSeat = !item.isCancelled();
         enrollment.cancelEnrollment(parsedClassSessionId);
 
-        // TODO: Notify schedule module to decrement enrolled count
-        // TODO: Process waitlist if applicable
+        if (shouldReleaseSeat) {
+            Schedule schedule = scheduleRepository.findById(ScheduleId.of(item.getScheduleId()))
+                    .orElseThrow(() -> new ClassSessionNotFoundException(parsedClassSessionId.value()));
+            schedule.decrementEnrollment();
+            scheduleRepository.save(schedule);
+        }
 
         return enrollmentRepository.save(enrollment);
     }
@@ -94,9 +121,30 @@ public class EnrollmentOrchestrator {
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
     }
 
+    private Trainer getTrainerById(String trainerId) {
+        TrainerId parsedTrainerId = TrainerId.of(requireText(trainerId, "trainerId"));
+        return trainerRepository.findById(parsedTrainerId)
+                .orElseThrow(() -> new TrainerNotFoundException(parsedTrainerId));
+    }
+
+    private Schedule getScheduleByClassSessionId(String classSessionId) {
+        return scheduleRepository.findByClassSessionId(classSessionId)
+                .orElseThrow(() -> new ClassSessionNotFoundException(classSessionId));
+    }
+
     private void validateMembershipIsActive(Member member) {
         if (!member.isMembershipActive() || member.isMembershipExpired()) {
             throw new InvalidMembershipException(member.getMemberId());
+        }
+    }
+
+    private void validateTrainer(Trainer trainer, String classType) {
+        if (!trainer.isActive()) {
+            throw new InactiveTrainerException(trainer.getTrainerId());
+        }
+
+        if (!trainer.canTeach(classType)) {
+            throw new TrainerSpecialtyMismatchException(trainer.getSpecialty().value(), classType);
         }
     }
 
@@ -127,9 +175,5 @@ public class EnrollmentOrchestrator {
         }
 
         return value.trim();
-    }
-
-    private <T> T requireNonNull(T value, String fieldName) {
-        return Objects.requireNonNull(value, fieldName + " cannot be null");
     }
 }

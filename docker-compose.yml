@@ -1,6 +1,6 @@
 services:
   gym-db-postgres:
-    image: docker.io/library/postgres:18.3
+    image: docker.io/library/postgres:18
     container_name: gym-db-postgres
     ports:
       - "5433:5432"
@@ -8,19 +8,31 @@ services:
       POSTGRES_DB: gym_db
       POSTGRES_USER: gym
       POSTGRES_PASSWORD: gym
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gym -d gym_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
-      - gym_db_pgsql:/var/lib/postgresql/18/main
+      - gym_db_pgsql:/var/lib/postgresql
 
   gym-app:
+    build:
+      context: .
     image: gym_ws:1.0
     container_name: gym-ws-pg
     depends_on:
-      - gym-db-postgres
+      gym-db-postgres:
+        condition: service_healthy
     ports:
       - "8081:8080"
     environment:
       SPRING_PROFILES_ACTIVE: pg
       POSTGRES_HOST: gym-db-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: gym_db
+      POSTGRES_USER: gym
+      POSTGRES_PASSWORD: gym
 
 volumes:
   gym_db_pgsql:

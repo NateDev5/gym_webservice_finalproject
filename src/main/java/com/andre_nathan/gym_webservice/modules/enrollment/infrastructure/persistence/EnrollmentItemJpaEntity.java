@@ -21,11 +21,11 @@ public class EnrollmentItemJpaEntity {
     @Column(name = "class_session_id", nullable = false)
     public String classSessionId;
 
-    // TODO: @Column(name = "trainer_id")
-    // TODO: public String trainerId;
+    @Column(name = "trainer_id", nullable = false)
+    public String trainerId;
 
-    // TODO: @Column(name = "schedule_id")
-    // TODO: public String scheduleId;
+    @Column(name = "schedule_id", nullable = false)
+    public String scheduleId;
 
     @Column(name = "seat_number")
     public Integer seatNumber;

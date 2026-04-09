@@ -60,8 +60,8 @@ public class JpaEnrollmentRepositoryAdapter implements EnrollmentRepositoryPort 
             itemEntity.enrollmentStatus = item.getEnrollmentStatus().name();
             itemEntity.classSessionId = item.getClassSessionId().value();
             itemEntity.seatNumber = item.getSeatNumber();
-            // TODO: itemEntity.trainerId = item.getTrainerId().value();
-            // TODO: itemEntity.scheduleId = item.getScheduleId().value();
+            itemEntity.trainerId = item.getTrainerId();
+            itemEntity.scheduleId = item.getScheduleId();
             itemEntity.enrollment = e;
             e.registeredClasses.add(itemEntity);
         }
@@ -87,9 +87,9 @@ public class JpaEnrollmentRepositoryAdapter implements EnrollmentRepositoryPort 
                 EnrollmentDate.of(entity.enrollmentDate),
                 EnrollmentStatus.valueOf(entity.enrollmentStatus),
                 ClassSessionId.of(entity.classSessionId),
+                entity.trainerId,
+                entity.scheduleId,
                 entity.seatNumber
-                // TODO: TrainerId.of(entity.trainerId),
-                // TODO: ScheduleId.of(entity.scheduleId)
         );
     }
 }
